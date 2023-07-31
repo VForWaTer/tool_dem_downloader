@@ -63,7 +63,7 @@ elif toolname == 'dem_downloader':
         file.close()    
 
     if flatten:
-        def flatten(parentDir,currentDir): # Credits - https://gist.github.com/oatkiller/4429244
+        def flatten(parentDir,currentDir): # Credit - https://gist.github.com/oatkiller/4429244
             # get all the files in the current dir
             files = os.listdir(currentDir)
             
