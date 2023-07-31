@@ -39,32 +39,40 @@ file.extractall('./out')
 file.close()
 
 #To flatten 
-# Credits - https://amitd.co/code/python/flatten-a-directory
+# Credits - https://gist.github.com/oatkiller/4429244
 import shutil
-def flatten(directory):
-    for dirpath, _, filenames in os.walk(directory, topdown=False):
-        for filename in filenames:
-            i = 0
-            source = os.path.join(dirpath, filename)
-            target = os.path.join(directory, filename)
+import glob
 
-            while os.path.exists(target):
-                i += 1
-                file_parts = os.path.splitext(os.path.basename(filename))
+def flatten(parentDir,currentDir):
+    # get all the files in the current dir
+    files = os.listdir(currentDir)
+    
+    for file in files:
+        # get the path of the file relative to the dir its in
+        # so "./file" or on successive runs: "./dir/file"
+        joinedFile = os.path.join(currentDir,file)
+        
+        if os.path.isdir(joinedFile):
+            # run the dir function on dirs
+            flatten(parentDir,joinedFile)
+        else: # its not a dir, its a file,
+            # dont move files in the parent dir into the parent dir =p
+            if parentDir != currentDir:
+                try:
+                    # move it to the dir we are flattening into
+                    shutil.move(joinedFile,parentDir)
+                except shutil.Error:
+                    # use rename to overwrite existing files
+                    os.rename(joinedFile,os.path.join(parentDir,file))
+        
+    
+    # if we arent working on the parent dir, delete the now empty dir
+    if parentDir != currentDir:
+        os.rmdir(currentDir)
 
-                target = os.path.join(
-                    directory,
-                    file_parts[0] + "_" + str(i) + file_parts[1],
-                )
+parentDir = r'u:\02_Software\Github\tool_dem_downloader\out'  
+currentDir = r'u:\02_Software\Github\tool_dem_downloader\out\Copernicus_DSM_10_N50_00_E009_00'           
+flatten(parentDir,currentDir)          
 
-            shutil.move(source, target)
-
-            print("Moved ", source, " to ", target)
-
-        if dirpath != directory:
-            os.rmdir(dirpath)
-
-            print("Deleted ", dirpath)
-            
-            
-            
+if unzip:
+   print('Hello')     
