@@ -4,9 +4,9 @@ FROM python:3.10
 # install the toolbox runner tools
 RUN pip install json2args
 
-
-# Do anything you need to install tool dependencies here
-RUN echo "Replace this line with a tool"
+# Install Dependencies
+RUN pip install requests
+RUN pip install tarfile
 
 # create the tool input structure
 RUN mkdir /in
