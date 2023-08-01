@@ -4,6 +4,20 @@ tools:
     description: A tool to retreive Copernicus DEM using https
     version: 0.1
     parameters:
+      long_direction:
+        type: string
+        description: Specify (E)asting or (W)esting
+        default: 'E'
+      lat_direction:
+        type: string
+        description: Specify (N)orthing or (S)outhing               
+        default: 'N' 
+      longitude:
+        type: int
+        description: Specify longitude of interest rounded off to the next highest integer (Degree 0- 180)
+      latitude:
+        type: int
+        description: Specify latitude of interest rounded off to the next highest integer   (Degree 0- 90)     
       provider: 
         type: string
         description: Dataset provider name
@@ -18,19 +32,9 @@ tools:
         default: true
       flatten:
         type: bool
-        description: Whether the downloaded file folder structure should be flattened
+        description: Whether the unzipped file folder structure should be flattened (Only works if unzip is true)
         default: true
-      long_direction:
-        type: string
-        description: Specify (E)asting or (W)esting
-        default: 'E'
-      lat_direction:
-        type: string
-        description: Specify (N)orthing or (S)outhing               
-        default: 'N' 
-      longitude:
-        type: int
-        description: Specify longitude of interest rounded off to the next highest integer (Degree : 0- 180)
-      latitude:
-        type: int
-        description: Specify latitude of interest rounded off to the next highest integer   (Degree : 0- 90)     
+      tidyup:
+        type: bool
+        description: Whether the downloaded tar file should be deleted after extraction. (Only works if both unzip and flatten are true)
+        default: true
