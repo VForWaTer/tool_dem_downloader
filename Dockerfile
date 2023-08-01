@@ -6,7 +6,6 @@ RUN pip install json2args
 
 # Install Dependencies
 RUN pip install requests
-RUN pip install tarfile
 
 # create the tool input structure
 RUN mkdir /in
