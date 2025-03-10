@@ -1,0 +1,32 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: DEM downloader
+message: >-
+  This repository contains a docker image for downloading Copernicus DEM 30m tiles using standardized input and outputs. 
+  This is based on the template for a generic containerized Python [tool](https://github.com/vforwater/tool_template_python). 
+type: software
+authors:
+  - given-names: Mirko
+    family-names: Mälicke
+    email: mirko.maelicke@KIT.edu
+    affiliation: >-
+      Institute for Water and Environment, Hydrology,
+      Karlsruhe Institute for Technology (KIT)
+    orcid: 'https://orcid.org/0000-0002-0424-2651'
+repository-code: 'https://github.com/VForWaTer/tool_dem_downloader'
+url: 'https://vforwater.github.io/tool-specs/'
+abstract: >-
+  This repository contains a docker image for downloading Copernicus DEM 30m tiles using standardized input and outputs. 
+  This is based on the template for a generic containerized Python [tool](https://github.com/vforwater/tool_template_python). 
+keywords:
+  - Copernicus DEM
+  - DEM
+  - DEM downloader
+  - docker
+  - tool-spec
+  - V-For-WaTer
+license: GPL v3
+version: '1.4'
+date-released: '2025-03-10'
