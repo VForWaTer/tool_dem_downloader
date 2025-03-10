@@ -2,7 +2,6 @@ tools:
   dem_downloader:
     title: DEM downloader
     description: A tool to retreive Copernicus DEM using https
-    version: 0.1
     parameters:
       long_direction:
         type: string
@@ -13,10 +12,10 @@ tools:
         description: Specify (N)orthing or (S)outhing               
         default: 'N' 
       longitude:
-        type: int
+        type: integer
         description: Specify longitude of interest rounded off to the next highest integer (Degree 0- 180)
       latitude:
-        type: int
+        type: integer
         description: Specify latitude of interest rounded off to the next highest integer   (Degree 0- 90)     
       provider: 
         type: string
@@ -38,3 +37,9 @@ tools:
         type: bool
         description: Whether the downloaded tar file should be deleted after extraction. (Only works if both unzip and flatten are true)
         default: true
+      output_dir:
+        type: string
+        description: |
+          You may overwrite the default output directory if the data should be persisted with a MetaCatalog instance.
+          In any other case, the data will be returned as standard file output in /out
+        default: /out

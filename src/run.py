@@ -9,115 +9,81 @@ from pprint import pprint
 import time
 
 from json2args import get_parameter
+from json2args.logger import logger
 
-# parse parameters
-kwargs = get_parameter()
+from helper import flatt
 
-#Function to flatten
-def flatt(parentDir,currentDir): # Credit - https://gist.github.com/oatkiller/4429244
-            # get all the files in the current dir
-            files = os.listdir(currentDir)
-            
-            for file in files:
-                # get the path of the file relative to the dir its in
-                # so "./file" or on successive runs: "./dir/file"
-                joinedFile = os.path.join(currentDir,file)
-                
-                if os.path.isdir(joinedFile):
-                    # run the dir function on dirs
-                    flatt(parentDir,joinedFile)
-                else: # its not a dir, its a file,
-                    # dont move files in the parent dir into the parent dir =p
-                    if parentDir != currentDir:
-                        try:
-                            # move it to the dir we are flattening into
-                            shutil.move(joinedFile,parentDir)
-                        except shutil.Error:
-                            # use rename to overwrite existing files
-                            os.rename(joinedFile,os.path.join(parentDir,file))
-                
-            
-            # if we arent working on the parent dir, delete the now empty dir
-            if parentDir != currentDir:
-                os.rmdir(currentDir)
 
 # check if a toolname was set in env
 toolname = os.environ.get('TOOL_RUN', 'dem_downloader').lower()
 
-# switch the tool
-if toolname == 'foobar':
-    # RUN the tool here and create the output in /out
-    print('This toolbox does not include any tool. Did you run the template?\n')
+kwargs = get_parameter(typed=True)
+
+if toolname == 'dem_downloader':
+    logger.info("#TOOL START - dem_downloader")
+    logger.debug(f"kwargs: {kwargs}")
+
+    if kwargs.longitude is None or kwargs.latitude is None:
+        raise ValueError("longitude and latitude are required parameters")
     
-    # write parameters to STDOUT.log
-    pprint(kwargs)
-
-elif toolname == 'dem_downloader':
-    # get the parameters
-    try:
-        provider = kwargs.get('provider', 'COPERNICUS')
-        product = kwargs.get('product', 'GLO-30')
-        unzip = kwargs.get('unzip', True)
-        flatten = kwargs.get('flatten', True)
-        long_dir = kwargs.get('long_direction', 'E')
-        lat_dir = kwargs.get('lat_direction', 'N' )
-        long = kwargs.get('longitude', 9) # Default lat lon for KIT IWG
-        lat = kwargs.get('latitude', 50)
-        tidy = kwargs.get('tidyup', True)
-
-    except Exception as e:
-        print(str(e))
-        sys.exit(1)
-
-
     # Download and save to out folder (30m tile)
-    url = 'https://prism-dem-open.copernicus.eu/pd-desk-open-access/prismDownload/COP-DEM_GLO-30-DGED__2022_1/'
+    url = os.environ.get('DEM_URL', 'https://prism-dem-open.copernicus.eu/pd-desk-open-access/prismDownload/COP-DEM_GLO-30-DGED__2022_1/')
+    
     #Adding leading zeros for URL compatibility (Refer Copernicus Documentation)
-    long = str(long).zfill(3)
-    lat = str(lat).zfill(2)
-    file = 'Copernicus_DSM_10_'+lat_dir+lat+'_00_'+long_dir+long+'_00.tar'
-
+    long = str(kwargs.longitude).zfill(3)
+    lat = str(kwargs.latitude).zfill(2)
+    file = f"Copernicus_DSM_10_{kwargs.lat_direction}{lat}_00_{kwargs.long_direction}{long}_00.tar"
     file_url = url + file
 
-    print(f'Start downloading LAT: {lat} LONG: {long} from: {url}...')
+    logger.debug(f"Downloading file: {file} from: {file_url}")
+
     t1  = time.time()
-    res = requests.get(file_url)
+    try:
+        zname = os.path.join(kwargs.output_dir, file)
+        with open(zname, 'wb') as f:
+            res = requests.get(file_url, stream=True)
+            total = int(res.headers.get('content-length', 0))
+            block_size = 1024
+            downloaded = 0
+            for data in res.iter_content(block_size):
+                downloaded += len(data)
+                f.write(data)
+                done = int(50 * downloaded / total)
+                sys.stdout.write('\r[{}{}] {:.1f}%'.format('=' * done, ' ' * (50 - done), downloaded * 100 / total))
+                sys.stdout.flush()
+            sys.stdout.write('\n')
+    except Exception as e:
+        logger.error(f"Error downloading file: {e}")
+        sys.exit(1)
+    
     t2 = time.time()
-    print(f"Finsihed downloading after {round(t2 - t1, 1)} seconds.\nExtracting...")
-    if res.status_code == 200:
-        zname = os.path.join('/out', file)
-        zfile = open(zname, 'wb')
-        zfile.write(res.content)
-        zfile.close()
-    t3 = time.time()
-    print(f"Done writing after {round(t3 - t2, 1)} seconds.")
+    logger.info(f"Done writing after {t2 - t1:.1f} seconds.")
 
-    if unzip==False:
-        # open file
-        print(f"Exiting Program")    
-        sys.exit(0)
-
-    if unzip:
+    if kwargs.unzip:
         # open file
         file = tarfile.open(zname)
         # extracting file
-        file.extractall('/out')
+        file.extractall(kwargs.output_dir)
         file.close() 
-        t4 = time.time()   
-        print(f"Finished unzipping after {round(t4 - t3, 1)} seconds.")
+        t3 = time.time()   
+        logger.info(f"Finished unzipping after {t3 - t2:.1f} seconds.")
+    else:
+        logger.info("#TOOL END - dem_downloader")
+        sys.exit(0)
 
-    if flatten==False:
-     # open file
-        print(f"Exiting Program")    
-        sys.exit(0)    
+    if kwargs.flatten:
+        flatt(kwargs.output_dir, kwargs.output_dir)      
+        t4 = time.time() 
+        logger.info(f"Finished flattening after {t4 - t3:.1f} seconds.")
+    else:
+        logger.info("#TOOL END - dem_downloader")
+        sys.exit(0)
 
-    if flatten:
-        flatt('/out','/out')      
-        t5 = time.time() 
-        print(f"Finished flattening after {round(t5 - t4, 1)} seconds.") 
-
-    if tidy:
+    if kwargs.tidyup:
         os.remove(zname)
+
+    logger.info("#TOOL END - dem_downloader")
+    sys.exit(0)
 
 # In any other case, it was not clear which tool to run
 else:
